@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elite Casino Portal - Roulette & Mines</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Play high-fidelity casino mini-games. Spin the European Roulette wheel or test your luck in the 5x5 Mines hazard board with a shared bankroll.">
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Style Sheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Master Global Header -->
+  <header>
+    <div class="logo">
+      <h1><i class="fa-solid fa-dharmachakra"></i> CASINO ELITE</h1>
+    </div>
+    
+    <div class="global-wallet-hud">
+      <span class="hud-label">WALLET:</span>
+      <span class="balance-display-label gold">$1,000.00</span>
+    </div>
+
+    <div class="header-controls">
+      <button id="auth-btn" class="btn btn-secondary auth-btn"><i class="fas fa-user"></i> <span>Login</span></button>
+      <button id="audio-toggle-btn" class="icon-btn" title="Toggle Sound">
+        <i class="fas fa-volume-up"></i>
+      </button>
+      <button id="info-btn" class="icon-btn" title="Rules & Payouts" style="display: none;">
+        <i class="fas fa-question-circle"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- LOBBY SELECTION VIEW -->
+  <div id="lobby-view" class="view-container active-view">
+    <div class="lobby-welcome">
+      <h2>Welcome to the Lobby</h2>
+      <p>Select an interactive experience to begin. Your bankroll is shared across all games.</p>
+    </div>
+    
+    <div class="lobby-grid">
+      <!-- Roulette Selection Card -->
+      <div class="lobby-card glass-panel">
+        <div class="lobby-card-icon red">
+          <i class="fa-solid fa-dharmachakra"></i>
+        </div>
+        <h3>Roulette Elite</h3>
+        <p>Premium single-zero European Roulette featuring full betting coordinates, dynamic splits/corners, rotation physics, and hot/cold stats.</p>
+        <button id="play-roulette-btn" class="btn btn-primary">
+          <i class="fa-solid fa-play"></i> Play Roulette
+        </button>
+      </div>
+
+      <!-- Mines Selection Card -->
+      <div class="lobby-card glass-panel">
+        <div class="lobby-card-icon gold">
+          <i class="fa-solid fa-burst"></i>
+        </div>
+        <h3>Mines Hazard</h3>
+        <p>Stake-style 5x5 hazard grid. Place your bet, select mine counts, and unlock safe tiles. Cash out before you hit an explosion!</p>
+        <button id="play-mines-btn" class="btn btn-primary">
+          <i class="fa-solid fa-play"></i> Play Mines
+        </button>
+      </div>
+
+      <!-- Leaderboard Card -->
+      <div class="lobby-card glass-panel leaderboard-card">
+        <div class="lobby-card-icon silver">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h3>Global Leaderboard</h3>
+        <div class="leaderboard-container">
+          <ul id="leaderboard-list" class="leaderboard-list">
+            <li class="leaderboard-empty">Please provide Firebase config to see Leaderboard.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EUROPEAN ROULETTE VIEW -->
+  <div id="roulette-view" class="view-container">
+    <div class="view-header">
+      <button class="btn btn-secondary back-to-lobby-btn">
+        <i class="fas fa-chevron-left"></i> Back to Lobby
+      </button>
+      <div class="view-title">
+        <h3>European Roulette</h3>
+      </div>
+    </div>
+
+    <main class="app-container">
+      <!-- Left Pane: Wheel Display & Stats -->
+      <section class="left-panel">
+        <div class="glass-panel wheel-card">
+          <div class="wheel-canvas-container">
+            <canvas id="wheel-canvas"></canvas>
+            
+            <!-- Result banner overlay -->
+            <div id="outcome-overlay" class="outcome-overlay">
+              <div class="outcome-card">
+                <div id="outcome-number" class="outcome-num-circle">0</div>
+                <div class="outcome-text-holder">
+                  <h2 id="outcome-text">WIN</h2>
+                  <div id="outcome-subtext" class="outcome-subtext">Net: +$100</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Live Stats panel -->
+        <div class="glass-panel stats-card">
+          <h3 class="card-label">Spin Statistics</h3>
+          <div class="stats-grid">
+            <div class="stats-list">
+              <span class="chip-value-label">🔥 Hot Numbers</span>
+              <div id="hot-numbers" class="stat-chips-flex"></div>
+            </div>
+            <div class="stats-list">
+              <span class="chip-value-label">❄️ Cold Numbers</span>
+              <div id="cold-numbers" class="stat-chips-flex"></div>
+            </div>
+          </div>
+          
+          <div class="ratio-bar-wrapper">
+            <span class="chip-value-label">Color Distribution</span>
+            <div class="ratio-bar">
+              <div id="ratio-red" class="ratio-segment red" style="width: 33%"><span>33%</span></div>
+              <div id="ratio-black" class="ratio-segment black" style="width: 33%"><span>33%</span></div>
+              <div id="ratio-green" class="ratio-segment green" style="width: 34%"><span>34%</span></div>
+            </div>
+            <div class="ratio-labels">
+              <span>Red</span>
+              <span>Black</span>
+              <span>Zero</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Pane: Table Board & Betting HUD -->
+      <section class="right-panel">
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <span class="card-label">Bankroll Balance</span>
+            <span class="card-value gold balance-display-label">$1000.00</span>
+          </div>
+          <div class="dashboard-card">
+            <span class="card-label">Total Bet Active</span>
+            <span id="roulette-total-bet" class="card-value">$0</span>
+          </div>
+          <div class="dashboard-card">
+            <span class="card-label">Spin History</span>
+            <div id="history-list" class="history-container"></div>
+          </div>
+        </div>
+
+        <!-- Betting Board -->
+        <div class="glass-panel board-card">
+          <h3 class="card-label" style="margin-bottom: 1rem;">Place Your Bets</h3>
+          <div id="betting-board-container"></div>
+        </div>
+
+        <!-- Bet Controls -->
+        <div class="glass-panel controls-card">
+          <span class="card-label">Choose Chip Denomination</span>
+          <div class="chip-selectors">
+            <button class="chip-select-btn" data-value="1">
+              <div class="casino-chip chip-1">1</div>
+              <span class="chip-value-label">$1</span>
+            </button>
+            <button class="chip-select-btn selected" data-value="5">
+              <div class="casino-chip chip-5">5</div>
+              <span class="chip-value-label">$5</span>
+            </button>
+            <button class="chip-select-btn" data-value="10">
+              <div class="casino-chip chip-10">10</div>
+              <span class="chip-value-label">$10</span>
+            </button>
+            <button class="chip-select-btn" data-value="25">
+              <div class="casino-chip chip-25">25</div>
+              <span class="chip-value-label">$25</span>
+            </button>
+            <button class="chip-select-btn" data-value="100">
+              <div class="casino-chip chip-100">100</div>
+              <span class="chip-value-label">$100</span>
+            </button>
+            <button class="chip-select-btn" data-value="500">
+              <div class="casino-chip chip-500">500</div>
+              <span class="chip-value-label">$500</span>
+            </button>
+          </div>
+
+          <div class="action-buttons">
+            <button id="clear-btn" class="btn btn-secondary">
+              <i class="fas fa-trash-alt"></i> Clear
+            </button>
+            <button id="double-btn" class="btn btn-secondary">
+              <i class="fas fa-angles-up"></i> Double
+            </button>
+            <button id="rebet-btn" class="btn btn-secondary" disabled>
+              <i class="fas fa-rotate-left"></i> Rebet
+            </button>
+            <button id="spin-btn" class="btn btn-primary">
+              <i class="fas fa-play"></i> SPIN
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MINES GAME VIEW -->
+  <div id="mines-view" class="view-container">
+    <div class="view-header">
+      <button class="btn btn-secondary back-to-lobby-btn">
+        <i class="fas fa-chevron-left"></i> Back to Lobby
+      </button>
+      <div class="view-title">
+        <h3>Mines Hazard</h3>
+      </div>
+    </div>
+
+    <main class="mines-app-container">
+      <!-- Left side: Mines Configuration Column -->
+      <section class="mines-settings-panel glass-panel">
+        <div class="setting-row">
+          <label class="card-label" for="mines-bet-input">Bet Amount ($)</label>
+          <div class="bet-input-wrapper">
+            <input type="number" id="mines-bet-input" min="0.10" max="10000" step="0.50" value="10.00">
+            <div class="bet-input-quick">
+              <button id="mines-half-btn" class="btn-quick">½</button>
+              <button id="mines-double-btn" class="btn-quick">2×</button>
+              <button id="mines-max-btn" class="btn-quick">Max</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label class="card-label" for="mines-count-select">Number of Mines</label>
+          <select id="mines-count-select" class="mines-select">
+            <option value="1">1 Mine</option>
+            <option value="2">2 Mines</option>
+            <option value="3" selected>3 Mines</option>
+            <option value="4">4 Mines</option>
+            <option value="5">5 Mines</option>
+            <option value="7">7 Mines</option>
+            <option value="10">10 Mines</option>
+            <option value="15">15 Mines</option>
+            <option value="20">20 Mines</option>
+            <option value="24">24 Mines</option>
+          </select>
+        </div>
+
+        <div class="mines-hud-stats">
+          <div class="hud-stat-box">
+            <span class="card-label">Wallet Balance</span>
+            <span class="card-value gold balance-display-label">$1000.00</span>
+          </div>
+        </div>
+
+        <button id="mines-action-btn" class="btn btn-primary bet-btn-large">
+          <i class="fa-solid fa-play"></i> Bet
+        </button>
+      </section>
+
+      <!-- Right side: Mines Field Display & Preview -->
+      <section class="mines-arena-panel">
+        <!-- Next payouts indicator -->
+        <div class="multipliers-bar-wrapper">
+          <span class="card-label" style="margin-left: 0.5rem;">Upcoming Multipliers</span>
+          <div id="mines-multipliers-preview" class="multipliers-preview-row"></div>
+        </div>
+
+        <!-- 5x5 grid -->
+        <div id="mines-grid-wrapper" class="mines-grid-wrapper glass-panel">
+          <div id="mines-grid" class="mines-grid">
+            <!-- Programmatically rendered -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Roulette Rules Modal -->
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Roulette Rules & Payouts</h2>
+        <button id="close-info-btn" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <h3>How to Play</h3>
+        <p>Roulette is a classic game of chance. Select a chip value and place it on any field or intersection on the betting board to lock in your prediction. When you click <strong>SPIN</strong>, the wheel spins and a ball is rolled. You win if the ball lands in a pocket that matches your bet coordinates.</p>
+        
+        <h3>Betting Options</h3>
+        <ul>
+          <li><strong>Straight Up</strong>: Place directly on a number (including 0).</li>
+          <li><strong>Split</strong>: Place on the line dividing two numbers.</li>
+          <li><strong>Street</strong>: Place on the bottom line of a column of 3 numbers.</li>
+          <li><strong>Corner</strong>: Place on the intersection of four numbers.</li>
+          <li><strong>Line</strong>: Place on the intersection of six numbers (two adjacent columns).</li>
+          <li><strong>Dozens / Columns</strong>: Bet on groups of 12 numbers.</li>
+          <li><strong>Even/Odd, Red/Black, High/Low</strong>: Even money (1:1) outside bets.</li>
+        </ul>
+
+        <h3>Payout Rates</h3>
+        <table class="payouts-table">
+          <thead>
+            <tr>
+              <th>Bet Type</th>
+              <th>Payout Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Straight Up</td><td>35:1</td></tr>
+            <tr><td>Split</td><td>17:1</td></tr>
+            <tr><td>Street</td><td>11:1</td></tr>
+            <tr><td>Corner</td><td>8:1</td></tr>
+            <tr><td>Line (6 numbers)</td><td>5:1</td></tr>
+            <tr><td>Dozens & Columns</td><td>2:1</td></tr>
+            <tr><td>Even Outside Bets</td><td>1:1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal">
+    <div class="modal-content auth-content">
+      <div class="modal-header auth-tabs-header">
+        <div class="auth-tabs">
+          <button id="tab-login" class="auth-tab active">Login</button>
+          <button id="tab-register" class="auth-tab">Register</button>
+        </div>
+        <button id="close-auth-btn" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="auth-form" class="auth-form" data-mode="login">
+          <div class="form-group" id="group-username" style="display: none;">
+            <label for="auth-username">Username</label>
+            <input type="text" id="auth-username" placeholder="Unique username" minlength="3" maxlength="15">
+          </div>
+          <div class="form-group">
+            <label for="auth-email">Email</label>
+            <input type="email" id="auth-email" required placeholder="player@example.com">
+          </div>
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" required placeholder="••••••••" minlength="6">
+          </div>
+          <div class="auth-actions">
+            <button type="submit" id="auth-submit-btn" class="btn btn-primary w-100">Login</button>
+          </div>
+          <p id="auth-hint" class="auth-hint">Welcome back to Casino Elite.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Message Container -->
+  <div id="toast-container"></div>
+
+  <!-- Disclaimer Footer -->
+  <footer>
+    <p>Practice demo only. No real money or gambling involved. Premium code template designed with love.</p>
+  </footer>
+
+  <!-- Firebase SDK (Compat version for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- Script Modules -->
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="db.js"></script>
+  <script src="audio.js"></script>
+  <script src="wheel.js"></script>
+  <script src="board.js"></script>
+  <script src="roulette.js"></script>
+  <script src="mines.js"></script>
+  <script src="game.js"></script>
+
+</body>
+</html>
