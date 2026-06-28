@@ -69,6 +69,18 @@
         </button>
       </div>
 
+      <!-- Crash Selection Card -->
+      <div class="lobby-card glass-panel">
+        <div class="lobby-card-icon purple">
+          <i class="fa-solid fa-arrow-trend-up"></i>
+        </div>
+        <h3>Crash</h3>
+        <p>Ride the multiplier to the moon! Cash out before the graph crashes to multiply your bet.</p>
+        <button id="play-crash-btn" class="btn btn-primary">
+          <i class="fa-solid fa-play"></i> Play Crash
+        </button>
+      </div>
+
       <!-- Leaderboard Card -->
       <div class="lobby-card glass-panel leaderboard-card">
         <div class="lobby-card-icon silver">
@@ -289,6 +301,56 @@
     </main>
   </div>
 
+  <!-- CRASH GAME VIEW -->
+  <div id="crash-view" class="view-container">
+    <div class="view-header">
+      <button class="btn btn-secondary back-to-lobby-btn">
+        <i class="fas fa-chevron-left"></i> Back to Lobby
+      </button>
+      <div class="view-title">
+        <h3>Crash</h3>
+      </div>
+    </div>
+
+    <main class="mines-app-container crash-layout">
+      <!-- Left side: Configuration (Reuse mines-settings-panel layout class) -->
+      <section class="mines-settings-panel glass-panel">
+        <div class="setting-row">
+          <label class="card-label" for="crash-bet-input">Bet Amount ($)</label>
+          <div class="bet-input-wrapper">
+            <input type="number" id="crash-bet-input" min="0.10" max="10000" step="0.50" value="10.00">
+            <div class="bet-input-quick">
+              <button id="crash-half-btn" class="btn-quick">½</button>
+              <button id="crash-double-btn" class="btn-quick">2×</button>
+              <button id="crash-max-btn" class="btn-quick">Max</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mines-hud-stats">
+          <div class="hud-stat-box">
+            <span class="card-label">Wallet Balance</span>
+            <span class="card-value gold balance-display-label">$1000.00</span>
+          </div>
+        </div>
+
+        <button id="crash-action-btn" class="btn btn-primary bet-btn-large">
+          <span>Place Bet</span>
+        </button>
+      </section>
+
+      <!-- Right side: Arena -->
+      <section class="mines-arena-panel glass-panel crash-arena">
+        <div class="crash-canvas-wrapper">
+          <canvas id="crash-canvas"></canvas>
+          <div class="crash-multiplier-display">
+            <h1 id="crash-multiplier-text">1.00x</h1>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
   <!-- Roulette Rules Modal -->
   <div id="info-modal" class="modal">
     <div class="modal-content">
@@ -388,6 +450,7 @@
   <script src="board.js"></script>
   <script src="roulette.js"></script>
   <script src="mines.js"></script>
+  <script src="crash.js"></script>
   <script src="game.js"></script>
 
 </body>

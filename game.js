@@ -14,10 +14,11 @@ class CasinoLobby {
       localStorage.setItem('casino_wallet_balance', '1000.00');
     }
     
-    this.currentView = 'lobby'; // 'lobby' | 'roulette' | 'mines'
+    this.currentView = 'lobby'; // 'lobby' | 'roulette' | 'mines' | 'crash'
     
     this.rouletteInitialized = false;
     this.minesInitialized = false;
+    this.crashInitialized = false;
     
     window.lobby = this;
   }
@@ -26,6 +27,7 @@ class CasinoLobby {
     // Instantiate games with a back-reference to this lobby manager
     this.rouletteGame = new RouletteGame(this);
     this.minesGame = new MinesGame(this);
+    this.crashGame = new CrashGame(this);
 
     this.bindGlobalUI();
     this.updateBalanceDisplay();
@@ -47,6 +49,10 @@ class CasinoLobby {
       this.launchGame('mines');
     });
 
+    document.getElementById('play-crash-btn').addEventListener('click', () => {
+      this.launchGame('crash');
+    });
+
     // Back to Lobby buttons
     const backBtns = document.querySelectorAll('.back-to-lobby-btn');
     backBtns.forEach(btn => {
@@ -56,8 +62,12 @@ class CasinoLobby {
           this.showToast("Cannot leave during wheel spin!", "error");
           return;
         }
-        if (this.minesGame.gameActive) {
+        if (this.minesGame && this.minesGame.gameActive) {
           this.showToast("Cannot leave during active Mines round! Cash out first.", "error");
+          return;
+        }
+        if (this.crashGame && this.crashGame.gameState === 'running') {
+          this.showToast("Cannot leave during active Crash round! Cash out first.", "error");
           return;
         }
         this.switchView('lobby');
@@ -114,6 +124,13 @@ class CasinoLobby {
       // Hide roulette-only rules icon
       document.getElementById('info-btn').style.display = 'none';
       this.switchView('mines');
+    } else if (gameName === 'crash') {
+      if (!this.crashInitialized) {
+        this.crashGame.init();
+        this.crashInitialized = true;
+      }
+      document.getElementById('info-btn').style.display = 'none';
+      this.switchView('crash');
     }
   }
 
@@ -123,7 +140,7 @@ class CasinoLobby {
   switchView(viewName) {
     this.currentView = viewName;
     
-    const views = ['lobby-view', 'roulette-view', 'mines-view'];
+    const views = ['lobby-view', 'roulette-view', 'mines-view', 'crash-view'];
     views.forEach(v => {
       const el = document.getElementById(v);
       if (v === `${viewName}-view`) {

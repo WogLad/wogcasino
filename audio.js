@@ -324,6 +324,35 @@ class AudioEngine {
       osc.stop(now + idx * 0.05 + 0.25);
     });
   }
+
+  /**
+   * Synthesizes a ticking sound whose pitch increases based on a multiplier
+   * Used for the Crash game rising graph
+   * @param {number} multiplier Current game multiplier (e.g., 1.5, 3.0)
+   */
+  async playRisingTick(multiplier) {
+    await this.resume();
+    if (this.muted || !this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gainNode = this.createGainNode(0.04, 0.05);
+
+    // Pitch rises smoothly with multiplier
+    const baseFreq = 400;
+    const maxFreq = 2000;
+    // Map multiplier 1.0 -> 10.0+ to frequency 400 -> 2000 roughly
+    const targetFreq = Math.min(baseFreq + (multiplier - 1) * 150, maxFreq);
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(targetFreq, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(targetFreq * 0.8, this.ctx.currentTime + 0.05);
+
+    osc.connect(gainNode);
+    gainNode.connect(this.ctx.destination);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.05);
+  }
 }
 
 // Export a single global audio instance
